@@ -12,6 +12,7 @@
 #include <vector>
 #include <odom.h>
 #include <chrono>
+#include <thread>
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -26,6 +27,10 @@ unsigned int driveVAO;
 unsigned int driveVBO;
 
 XDrive chassis;
+
+double straight = 0;
+double right = 0;;
+double turn = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -60,18 +65,39 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+
+	double _right = 0;
+	double _straight = 0;
 	if (glfwGetKey(window, GLFW_KEY_W)) {
 		// forward
+		_straight += 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S)) {
 		// backward
+		_straight -= 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A)) {
 		// left
+		_right -= 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D)) {
 		// right
+		_right += 1;
 	}
+
+	double _turn = 0;
+	if(glfwGetKey(window, GLFW_KEY_RIGHT)) {
+		// clockwise
+		_turn -= 1;
+	}
+	if(glfwGetKey(window, GLFW_KEY_LEFT)) {
+		// counterclockwise
+		_turn += 1;
+	}
+
+	straight = _straight;
+	right = _right;
+	turn = _turn;
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
@@ -197,6 +223,8 @@ int main()
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		chassis.strafe(glm::vec2(right, straight), turn);
+
 		//Pass matrices to the shader through a uniform
 		driveShader.use();
 		driveShader.setMat4("model", zoom * chassis.getMatrix());
@@ -205,7 +233,6 @@ int main()
 		glBindVertexArray(driveVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, driveVBO);
 		glDrawArrays(GL_TRIANGLES, 0, ARRAY_SIZE(squareVertices));
-		// glDrawArrays(GL_POINTS, 0, numberOfPoints);
 
 		//Draw Background
 		glActiveTexture(GL_TEXTURE1);

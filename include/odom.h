@@ -26,15 +26,18 @@ extern GLuint driveVAO;
 
 class XDrive {
 private:
-    const double acceleration = 1;
-    const double angularAcceleration = M_PI / 2;
-    const double maxSpeed = 4;
-    const double maxAngularSpeed = 2 * M_PI;
+    const double angularStoppingDecel = 12 * M_PI;
+    const double stoppingDecel = 24;
+    const double acceleration = 8 + stoppingDecel;
+    const double angularAcceleration = 4 * M_PI;
+    const double maxSpeed = 8;
+    const double maxAngularSpeed = 4 * M_PI;
     glm::vec2 localVelocity;
+    double angularVelocity;
 
     glm::vec2 position;
     double orientation;
-    std::chrono::high_resolution_clock::time_point lastUpdate;
+    double lastUpdate;
 
 public:
     // Constructors

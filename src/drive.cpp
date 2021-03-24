@@ -1,8 +1,6 @@
 #include "odom.h"
 #include "glm/gtc/matrix_transform.hpp"
-
-using namespace std;
-using namespace std::chrono;
+#include <iostream>
 
 // constructors
 XDrive::XDrive() : XDrive(glm::vec2(0), 0) { }
@@ -19,16 +17,45 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
     glm::vec2 accel = (float)acceleration * drive;
     double angAccel = angularAcceleration*turn;
 
-    localVelocity = localVelocity + accel;
-    if(localVelocity.length() > maxSpeed) {
-        localVelocity = glm::normalize(localVelocity);
+    auto t = glfwGetTime();
+    auto deltaT = t - lastUpdate;
+
+    localVelocity = localVelocity + (accel * (float)deltaT);
+    if(glm::length(localVelocity) > maxSpeed) {
+        localVelocity = glm::normalize(localVelocity) * (float)maxSpeed;
+    }
+    angularVelocity += angAccel * deltaT;
+    if(abs(angularVelocity) > maxAngularSpeed) {
+        angularVelocity = angularVelocity / abs(angularVelocity) * maxAngularSpeed;
+    }
+
+    if(turn == 0) {
+        if(angularVelocity > 0) {
+            angularVelocity -= std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
+        }
+        else {
+            angularVelocity += std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
+        }
+    }
+    if(localVelocity.x > 0) {
+        localVelocity.x -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
+    }
+    else {
+        localVelocity.x += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
+    }
+    if(localVelocity.y > 0) {
+        localVelocity.y -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
+    }
+    else {
+        localVelocity.y += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
     }
 
     glm::vec2 velocity = localToGlobal(localVelocity);
 
-    auto t = high_resolution_clock::now();
-    auto deltaT = duration_cast<duration<double>>(t - lastUpdate);
-    position = position + ((float)deltaT.count() * velocity);
+    std::cout << angularVelocity << std::endl;
+    std::cout << velocity.x << " " << velocity.y << std::endl;
+    position = position + ((float)deltaT * velocity);
+    orientation += angularVelocity * deltaT;
     lastUpdate = t;
 }
 
@@ -39,8 +66,8 @@ glm::vec2 XDrive::localToGlobal(glm::vec2 vec) {
 glm::mat4 XDrive::getMatrix() {
     glm::mat4 mat;
     mat = glm::scale(mat, glm::vec3(1.0f/12));
-    // mat = glm::translate(mat, glm::vec3(position, 0));
-    // mat = glm::rotate(mat, (float)orientation, glm::vec3(0, 0, 1));
+    mat = glm::translate(mat, glm::vec3(position, 0));
+    mat = glm::rotate(mat, (float)orientation, glm::vec3(0, 0, 1));
     return mat;
 }
 
