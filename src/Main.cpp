@@ -13,6 +13,7 @@
 #include <odom.h>
 #include <chrono>
 #include <thread>
+#include "tracking.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -115,6 +116,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
 int main()
 {
+	std::thread trackingThread(tracking);
+
 	//Initialize GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -150,12 +153,12 @@ int main()
 
 	float squareVertices[] {
 		//Vertices         
-		-1.0f, -1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		1.0f,  -1.0f, 0.0f,
-		1.0f,  -1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		1.0f,   1.0f, 0.0f
+		-6.0f, -6.0f, 0.0f,
+		-6.0f,  6.0f, 0.0f,
+		6.0f,  -6.0f, 0.0f,
+		6.0f,  -6.0f, 0.0f,
+		-6.0f,  6.0f, 0.0f,
+		6.0f,   6.0f, 0.0f
 	};
 
 	//Background data

@@ -1,6 +1,11 @@
 #include "odom.h"
+#include "tracking.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include <iostream>
+
+Vector2 glmToCustom(glm::vec2 v) {
+    return Vector2(v.x, v.y);
+}
 
 // constructors
 XDrive::XDrive() : XDrive(glm::vec2(0), 0) { }
@@ -52,20 +57,32 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
 
     glm::vec2 velocity = localToGlobal(localVelocity);
 
-    std::cout << angularVelocity << std::endl;
-    std::cout << velocity.x << " " << velocity.y << std::endl;
+    // std::cout << angularVelocity << std::endl;
+    // std::cout << velocity.x << " " << velocity.y << std::endl;
+    glm::vec2 oldPosition = position;
     position = position + ((float)deltaT * velocity);
     orientation += angularVelocity * deltaT;
     lastUpdate = t;
+
+    Vector2 dP = glmToCustom(globalToLocal(position - oldPosition));
+    double dO = angularVelocity * deltaT;
+
+    leftTrackingWheel.update(dP, dO);
+    rightTrackingWheel.update(dP, dO);
+    backTrackingWheel.update(dP, dO);
 }
 
 glm::vec2 XDrive::localToGlobal(glm::vec2 vec) {
     return rotateVector(vec, orientation);
 }
 
+glm::vec2 XDrive::globalToLocal(glm::vec2 vec) {
+    return rotateVector(vec, -orientation);
+}
+
 glm::mat4 XDrive::getMatrix() {
     glm::mat4 mat;
-    mat = glm::scale(mat, glm::vec3(1.0f/12));
+    mat = glm::scale(mat, glm::vec3(2.0f/144));
     mat = glm::translate(mat, glm::vec3(position, 0));
     mat = glm::rotate(mat, (float)orientation, glm::vec3(0, 0, 1));
     return mat;
@@ -81,4 +98,12 @@ glm::vec2 rotateVector(glm::vec2 vec, double angle)
     double newY = (vec.y * cos(angle)) + (vec.x * sin(angle));
 
     return glm::vec2(newX, newY);
+}
+
+glm::vec2 XDrive::getPosition() {
+    return this->position;
+}
+
+double XDrive::getOrientation() {
+    return this->orientation;
 }
