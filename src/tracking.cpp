@@ -22,7 +22,12 @@ const float bOffset = -BACK_WHEEL_OFFSET;
 TrackingData trackingData(0, 0, 0);
 VirtualEncoder leftTrackingWheel(-WHEELBASE / 2);
 VirtualEncoder rightTrackingWheel(WHEELBASE / 2);
-VirtualEncoder backTrackingWheel(WHEELBASE / 2, true);
+VirtualEncoder backTrackingWheel(BACK_WHEEL_OFFSET, true);
+
+double roundUp(double v, int places) {
+    const double mult = std::pow(10.0, places);
+	return std::ceil(v * mult) / mult;
+}
 
 void tracking() {
 
@@ -39,7 +44,7 @@ void tracking() {
 
 	// Start tracking loop
 	while(1) {
-		float localX, localY;
+		float localX, localY = 0;
 
 		// Get encoder data
 		float leftEncoder = leftTrackingWheel.read();
@@ -64,13 +69,9 @@ void tracking() {
 		right += rDist;
 		lateral += bDist;
 
-		// std::cout << "L: " << left << " " << chassis.getPosition().y << std::endl;
-		// std::cout << "R: " << right << " " << chassis.getPosition().y << std::endl;
-		// std::cout << "B: " << lateral << " " << chassis.getPosition().x << std::endl;
-
-		std::cout << "X: " << trackingData.getX() << " " << chassis.getPosition().x << std::endl;
-		std::cout << "Y: " << trackingData.getY() << " " << chassis.getPosition().y << std::endl;
-		std::cout << "A: " << trackingData.getHeading() << " " << chassis.getOrientation() << std::endl;
+		// std::cout << "X: " << roundUp(trackingData.getX(), 2) << " " << roundUp(chassis.getPosition().x, 2) << std::endl;
+		// std::cout << "Y: " << roundUp(trackingData.getY(), 2) << " " << roundUp(chassis.getPosition().y, 2) << std::endl;
+		// std::cout << "A: " << trackingData.getHeading() * 360 / 2 / M_PI << " " << chassis.getOrientation() * 360 / 2 / M_PI << std::endl;
 
 		//aDelta = (lDist - rDist)/(lrOffset*2.0f);
 		// Calculate arc angle
@@ -81,13 +82,13 @@ void tracking() {
 
 		// If theres an arc
 		if(aDelta) {
-			float radius = (rDist / aDelta);
+			float radius = (rDist / aDelta) - lrOffset;
 			halfA = aDelta/2.0f;
 			float sinHalf = sin(halfA);
-			localY = ((radius + lrOffset) * sinHalf) * 2.0f;
+			localY = (radius * sinHalf) * 2.0f;
 
-			float backRadius = bDist / aDelta;
-			localX = ((backRadius + bOffset) * sinHalf) * 2.0f;
+			float backRadius = (bDist / aDelta) - BACK_WHEEL_OFFSET;
+			localX = (backRadius * sinHalf) * 2.0f;
 		}
 		// If no arc
 		else {
@@ -97,7 +98,7 @@ void tracking() {
 			localX = bDist;
 		}
 
-		float p = (halfA + holdAngle); // The global ending angle of the robot
+		float p = -(halfA + holdAngle); // The global ending angle of the robot
 		float cosP = cos(p);
 		float sinP = sin(p);
 
@@ -107,10 +108,11 @@ void tracking() {
 
 		trackingData.update(x, y, angle);
 
-		//Update angle
-		//angle += aDelta;
+		std::cout << "dX: " << roundUp(trackingData.getX() - chassis.getPosition().x, 2) << std::endl;
+		std::cout << "dY: " << roundUp(trackingData.getY() - chassis.getPosition().y, 2) << std::endl;
+		std::cout << "dA: " << roundUp(trackingData.getHeading() - chassis.getOrientation(), 2) << std::endl;
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
 
@@ -156,7 +158,7 @@ Vector2 TrackingData::getPos() {
 
 void TrackingData::update(double _x, double _y, double _h) {
 	this->pos = Vector2(_x, _y);
-	this->heading = _h;
+	this->heading = fmod(_h, 2 * M_PI);
 }
 
 // ----------------- Vector2 Struct ----------------- //
@@ -223,18 +225,14 @@ void VirtualEncoder::reset() {
 }
 
 void VirtualEncoder::update(Vector2 dP, double dO) {
-	if(dP.getY() > 0) {
-		int x = 5;
-	}
-
 	if(dO == 0) {
-		double mult = TRACKING_WHEEL_INCH_TO_DEGREE;
-		double d = (lateral ? dP.getX() : dP.getY()) * TRACKING_WHEEL_INCH_TO_DEGREE;
 		this->ticks += (lateral ? dP.getX() : dP.getY()) * TRACKING_WHEEL_INCH_TO_DEGREE;
 		return;
 	}
 
-	Vector2 disp = rotateVector(dP, dO/2) * (1/2) * (1/sin(dO/2));
-	double dist = lateral ? disp.getX() : disp.getY();
+	Vector2 disp = rotateVector(dP, -dO/2);
+	double newX = disp.getX() / 2 / sin(dO/2);
+	double newY = disp.getY() / 2 / sin(dO/2);
+	double dist = lateral ? newX : newY;
 	this->ticks += ((dist + offset) * dO) * TRACKING_WHEEL_INCH_TO_DEGREE;
 }

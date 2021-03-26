@@ -62,6 +62,7 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
     glm::vec2 oldPosition = position;
     position = position + ((float)deltaT * velocity);
     orientation += angularVelocity * deltaT;
+    orientation = fmod(orientation, 2 * M_PI);
     lastUpdate = t;
 
     Vector2 dP = glmToCustom(globalToLocal(position - oldPosition));
