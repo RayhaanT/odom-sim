@@ -108,9 +108,9 @@ void tracking() {
 
 		trackingData.update(x, y, angle);
 
-		std::cout << "dX: " << roundUp(trackingData.getX() - chassis.getPosition().x, 2) << std::endl;
-		std::cout << "dY: " << roundUp(trackingData.getY() - chassis.getPosition().y, 2) << std::endl;
-		std::cout << "dA: " << roundUp(trackingData.getHeading() - chassis.getOrientation(), 2) << std::endl;
+		// std::cout << "dX: " << roundUp(trackingData.getX() - chassis.getPosition().x, 2) << std::endl;
+		// std::cout << "dY: " << roundUp(trackingData.getY() - chassis.getPosition().y, 2) << std::endl;
+		// std::cout << "dA: " << roundUp(trackingData.getHeading() - chassis.getOrientation(), 2) << std::endl;
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
@@ -207,7 +207,7 @@ void Vector2::normalize() {
 	y = y/divisor;
 }
 
-// ----------------- Vector2 Struct ----------------- //
+// ----------------- VirtualEncoder Struct ----------------- //
 
 VirtualEncoder::VirtualEncoder(double _offset, bool _lateral) {
     this->offset = _offset;

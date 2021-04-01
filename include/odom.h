@@ -15,24 +15,58 @@ const double backOffset = 6;
 // const double lrOffset = wheelbase/2;
 // const double rlOffset = wheelbase/2;
 
+const double angularStoppingDecel = 12 * M_PI;
+const double stoppingDecel = 144;
+const double acceleration = 48 + stoppingDecel;
+const double angularAcceleration = 4 * M_PI;
+const double maxSpeed = 48;
+const double maxAngularSpeed = 4 * M_PI;
+
+const double maxForce = acceleration / 2.828;
+
 // GL containers
 extern GLuint driveVBO;
 extern GLuint driveVAO;
 
+double degToRad(double d);
+double radToDeg(double r);
+
+class Motor {
+private:
+    const double jerk = 10000; // Consider nearly infinite jerk
+    const double stoppingJerk = 5000; // Slightly less stopping jerk
+    glm::vec2 position;
+    double orientation;
+    double output;
+    double lastUpdate = 0;
+
+public:
+    Motor();
+    Motor(glm::vec2 p, double o);
+
+    void setPower(double power);
+    glm::vec2 getForce();
+    glm::vec2 getPosition();
+};
+
 class XDrive {
 private:
-    const double angularStoppingDecel = 12 * M_PI;
-    const double stoppingDecel = 144;
-    const double acceleration = 48 + stoppingDecel;
-    const double angularAcceleration = 4 * M_PI;
-    const double maxSpeed = 48;
-    const double maxAngularSpeed = 4 * M_PI;
     glm::vec2 localVelocity;
     double angularVelocity;
 
     glm::vec2 position;
     double orientation;
     double lastUpdate;
+
+    std::vector<Motor> motors = {
+        Motor(glm::vec2( wheelbase / 2,  wheelbase / 2), degToRad( 45)), // front right
+        Motor(glm::vec2(-wheelbase / 2,  wheelbase / 2), degToRad(-45)), // front left
+        Motor(glm::vec2( wheelbase / 2, -wheelbase / 2), degToRad(-45)), // back  right
+        Motor(glm::vec2(-wheelbase / 2, -wheelbase / 2), degToRad( 45))  // back  left
+    };
+
+    glm::vec2 getNetForce();
+    double getNetTorque();
 
 public:
     // Constructors
@@ -42,6 +76,7 @@ public:
 
     // Control
     void strafe(glm::vec2 drive, double turn);
+    void update();
 
     // Utility
     glm::vec2 localToGlobal(glm::vec2 v);
