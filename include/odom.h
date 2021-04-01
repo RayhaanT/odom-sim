@@ -16,7 +16,7 @@ const double backOffset = 6;
 // const double rlOffset = wheelbase/2;
 
 const double angularStoppingDecel = 12 * M_PI;
-const double stoppingDecel = 144;
+const double stoppingDecel = 100;
 const double acceleration = 48 + stoppingDecel;
 const double angularAcceleration = 4 * M_PI;
 const double maxSpeed = 48;
@@ -59,10 +59,10 @@ private:
     double lastUpdate;
 
     std::vector<Motor> motors = {
-        Motor(glm::vec2( wheelbase / 2,  wheelbase / 2), degToRad( 45)), // front right
-        Motor(glm::vec2(-wheelbase / 2,  wheelbase / 2), degToRad(-45)), // front left
-        Motor(glm::vec2( wheelbase / 2, -wheelbase / 2), degToRad(-45)), // back  right
-        Motor(glm::vec2(-wheelbase / 2, -wheelbase / 2), degToRad( 45))  // back  left
+        Motor(glm::vec2( wheelbase / 24,  wheelbase / 24), degToRad( 45)), // front right
+        Motor(glm::vec2(-wheelbase / 24,  wheelbase / 24), degToRad(-45)), // front left
+        Motor(glm::vec2( wheelbase / 24, -wheelbase / 24), degToRad(-45)), // back  right
+        Motor(glm::vec2(-wheelbase / 24, -wheelbase / 24), degToRad( 45))  // back  left
     };
 
     glm::vec2 getNetForce();

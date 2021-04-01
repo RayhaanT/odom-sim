@@ -46,6 +46,12 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
     motors[2].setPower((straight + right + turn) / scalar); // back  right
     motors[3].setPower((straight - right - turn) / scalar); // back  left
 
+    printf("%f %f %f %f\n",
+        (straight - right + turn) / scalar,
+        (straight + right - turn) / scalar,
+        (straight + right + turn) / scalar,
+        (straight - right - turn) / scalar);
+
     update();
 }
 
@@ -53,41 +59,18 @@ void XDrive::update() {
     auto t = glfwGetTime();
     auto deltaT = t - lastUpdate;
 
-    glm::vec2 accel = getNetForce();
+    glm::vec2 driveForce = getNetForce();
 
-    printf("NX: %f, NY: %f\n", accel.x, accel.y);
+    // printf("NX: %f, NY: %f\n", accel.x, accel.y);
 
     // printf("X: %f, Y: %f\n", accel.x, accel.y);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-    glm::vec2 friction(0, 0);
-    double localSpeed = glm::length(localVelocity);
-    double localAccel = glm::length(accel);
-    if(localSpeed > 0) {
-        friction = -(float)stoppingDecel * glm::normalize(localVelocity);
-    }
-    else if(localAccel > 0) {
-        friction = -(float)stoppingDecel * glm::normalize(accel);
-    }
-    if(glm::normalize(accel + friction) == glm::normalize(accel) || glm::length(accel) == 0) {
-        accel += friction;
-    }
-    else {
-        accel = glm::vec2(0, 0);
-    }
-
-    // printf("X: %f, Y: %f\n", accel.x, accel.y);
+    // printf("X: %f, Y: %f\n", driveForce.x, driveForce.y);
 
     double angAccel = getNetTorque();
-    double angFriction = angularStoppingDecel * (angularVelocity > 0 ? -1 : 1);
-    if((angAccel + angFriction) / abs(angAccel + angFriction) == angAccel / abs(angAccel)) {
-        angAccel += angFriction;
-    }
-    else {
-        angAccel = 0;
-    }
-
-    localVelocity = localVelocity + (accel * (float)deltaT);
+    glm::vec2 oldVelocity = localVelocity;
+    localVelocity = localVelocity + (driveForce * (float)deltaT);
     if(glm::length(localVelocity) > maxSpeed) {
         localVelocity = glm::normalize(localVelocity) * (float)maxSpeed;
     }
@@ -95,6 +78,39 @@ void XDrive::update() {
     if(abs(angularVelocity) > maxAngularSpeed) {
         angularVelocity = angularVelocity / abs(angularVelocity) * maxAngularSpeed;
     }
+
+    // Friction
+    if(angularVelocity > 0) {
+        angularVelocity -= std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
+    }
+    else {
+        angularVelocity += std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
+    }
+
+    if(glm::length(localVelocity) != 0) {
+        glm::vec2 lastVelDir = glm::normalize(localVelocity);
+        glm::vec2 linearFriction = (float)(-stoppingDecel * deltaT) * lastVelDir;
+        localVelocity += linearFriction;
+        glm::vec2 norm = glm::normalize(localVelocity);
+        // printf("X1: %f Y1: %f X2: %f Y2: %f\n", lastVelDir.x, lastVelDir.y, glm::normalize(localVelocity).x, glm::normalize(localVelocity).y);
+        if (glm::length(lastVelDir - glm::normalize(localVelocity)) > 0.1) {
+            printf("bruh\n");
+            localVelocity = glm::vec2(0, 0);
+        }
+    }
+
+    // if(localVelocity.x > 0) {
+    //     localVelocity.x -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
+    // }
+    // else {
+    //     localVelocity.x += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
+    // }
+    // if(localVelocity.y > 0) {
+    //     localVelocity.y -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
+    // }
+    // else {
+    //     localVelocity.y += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
+    // }
 
     glm::vec2 velocity = localToGlobal(localVelocity);
 
@@ -189,28 +205,31 @@ void Motor::setPower(double power) {
         power = power > 0 ? 1 : -1;
     }
 
-    auto t = glfwGetTime();
-    auto deltaT = t - lastUpdate;
+    output = maxForce * power;
 
-    auto target = power * maxForce;
-    // If the target and current output are opposites
-    if(output/abs(output) != target/abs(target)) {
-        output += std::min(jerk * deltaT * power, target - output);
-    }
-    else {
-        // If the output is exceeding the target
-        if(abs(output) > abs(target)) {
-            output -= (output/abs(output)) * stoppingJerk;
-        }
-        // If the output is less than the target
-        else {
-            output += std::min(jerk * deltaT * power, target - output);
-        }
-    }
+    // auto t = glfwGetTime();
+    // auto deltaT = t - lastUpdate;
 
-    if(abs(output) > maxForce) {
-        output = output > 0 ? maxForce : -maxForce;
-    }
+    // auto target = power * maxForce;
+    // // If the target and current output are opposites
+    // if(output/abs(output) != target/abs(target)) {
+    //     output += std::min(jerk * deltaT * power, target - output);
+    // }
+    // else {
+    //     // If the output is exceeding the target
+    //     if(abs(output) > abs(target)) {
+    //         printf("%f\n", output);
+    //         output -= (output/abs(output)) * stoppingJerk;
+    //     }
+    //     // If the output is less than the target
+    //     else {
+    //         output += std::min(jerk * deltaT * power, target - output);
+    //     }
+    // }
 
-    lastUpdate = t;
+    // if(abs(output) > maxForce) {
+    //     output = output > 0 ? maxForce : -maxForce;
+    // }
+
+    // lastUpdate = t;
 }
