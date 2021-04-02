@@ -3,7 +3,7 @@
 #include "tracking.h"
 #include <math.h>
 
-#define SETTLE_DELAY 200
+#define SETTLE_DELAY 0.2
 
 typedef struct PIDInfo {
     double p, i, d, motor;
@@ -24,10 +24,11 @@ private:
 
     // constants
     double tolerance;
+    double integralTolerance;
     PIDInfo constants;
 
 public:
-	PIDController(double _target, PIDInfo _constants, double _tolerance);
+	PIDController(double _target, PIDInfo _constants, double _tolerance, double _integralTolerance);
 
     double step(double newSense);
     void reset();

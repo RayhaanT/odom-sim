@@ -144,23 +144,23 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);	
 	
 	float squareVerticesTextured[] {
-		//Vertices            //Texture coords
-		-1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
-		-1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-		1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
-		1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
-		-1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-		1.0f,   1.0f, 0.0f,   1.0f, 0.0f
+		//Vertices             //Texture coords
+		-1.0f,  -1.0f, 0.0f,   0.0f, 1.0f,
+		-1.0f,   1.0f, 0.0f,   0.0f, 0.0f,
+		 1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
+		 1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
+		-1.0f,   1.0f, 0.0f,   0.0f, 0.0f,
+		 1.0f,   1.0f, 0.0f,   1.0f, 0.0f
 	};
 
 	float squareVertices[] {
-		//Vertices         
-		-6.0f, -6.0f, 0.0f,
-		-6.0f,  6.0f, 0.0f,
-		6.0f,  -6.0f, 0.0f,
-		6.0f,  -6.0f, 0.0f,
-		-6.0f,  6.0f, 0.0f,
-		6.0f,   6.0f, 0.0f
+		//Vertices         	   //Texture coords
+		-9.0f,  -9.0f, 0.0f,   0.0f, 1.0f,
+		-9.0f,   9.0f, 0.0f,   0.0f, 0.0f,
+		 9.0f,  -9.0f, 0.0f,   1.0f, 1.0f,
+		 9.0f,  -9.0f, 0.0f,   1.0f, 1.0f,
+		-9.0f,   9.0f, 0.0f,   0.0f, 0.0f,
+		 9.0f,   9.0f, 0.0f,   1.0f, 0.0f
 	};
 
 	//Background data
@@ -185,13 +185,22 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, driveVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_DYNAMIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	glm::vec3 objectColour = glm::vec3(1.0f, 0.5f, 0.31f);
 	glm::vec3 lightColour = glm::vec3(1.0f, 1.0f, 1.0f);
 
-	Shader driveShader("Shaders/Vertex.vs", "Shaders/Fragment.fs");
+	Shader driveShader("Shaders/VertexTexture.vs", "Shaders/FragmentTexture.fs");
+
+	driveShader.use();
+	driveShader.setInt("text", 0);
+	unsigned int driveTexture;
+	loadTexture(driveTexture, "textures/RedTexture.png");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, driveTexture);
 
 	Shader backgroundShader("Shaders/VertexTexture.vs", "Shaders/FragmentTexture.fs");
 
@@ -231,10 +240,11 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if(!suspendDrive) {
-			// chassis.strafe(glm::vec2(right, straight), turn);
+			chassis.strafe(glm::vec2(right, straight), turn);
 		}
 
 		//Pass matrices to the shader through a uniform
+		glActiveTexture(GL_TEXTURE0);
 		driveShader.use();
 		driveShader.setMat4("model", zoom * chassis.getMatrix());
 

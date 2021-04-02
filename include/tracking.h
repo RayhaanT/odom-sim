@@ -5,8 +5,8 @@
 #define _USE_MATH_DEFINES
 #include "odom.h"
 
-#define WHEELBASE 10
-#define BACK_WHEEL_OFFSET 6
+#define WHEELBASE 10.25
+#define BACK_WHEEL_OFFSET 5
 
 #define TRACKING_WHEEL_DIAMETER 2.75f
 #define TRACKING_WHEEL_DEGREE_TO_INCH (M_PI * TRACKING_WHEEL_DIAMETER / 360)
@@ -28,7 +28,7 @@ public:
 	double getMagnitude();
 	double getAngle();
 
-	void normalize();
+	Vector2 normalize();
 
 	// friend keyword allows access to private members
 	friend Vector2 operator + (const Vector2 &v1, const Vector2 &v2);

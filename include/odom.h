@@ -10,7 +10,7 @@
 #define _USE_MATH_DEFINES
 
 // Robot metrics
-const double wheelbase = 11.5;
+const double wheelbase = 10.25;
 const double backOffset = 6;
 // const double lrOffset = wheelbase/2;
 // const double rlOffset = wheelbase/2;
@@ -19,16 +19,16 @@ const double backOffset = 6;
 extern GLuint driveVBO;
 extern GLuint driveVAO;
 
-#define STARTX 24
-#define STARTY 0
+#define STARTX 38
+#define STARTY 8
 #define STARTO 0
 
 class XDrive {
 private:
-    const double angularStoppingDecel = 12 * M_PI;
+    const double angularStoppingDecel = 24 * M_PI;
     const double stoppingDecel = 144;
     const double acceleration = 48 + stoppingDecel;
-    const double angularAcceleration = 4 * M_PI;
+    const double angularAcceleration = 20 * M_PI;
     const double maxSpeed = 48;
     const double maxAngularSpeed = 4 * M_PI;
     glm::vec2 localVelocity;

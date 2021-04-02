@@ -76,15 +76,9 @@ void tracking() {
 		right += rDist;
 		lateral += bDist;
 
-		// std::cout << "X: " << roundUp(trackingData.getX(), 2) << " " << roundUp(chassis.getPosition().x, 2) << std::endl;
-		// std::cout << "Y: " << roundUp(trackingData.getY(), 2) << " " << roundUp(chassis.getPosition().y, 2) << std::endl;
-		// std::cout << "A: " << trackingData.getHeading() * 360 / 2 / M_PI << " " << chassis.getOrientation() * 360 / 2 / M_PI << std::endl;
-
-		//aDelta = (lDist - rDist)/(lrOffset*2.0f);
 		// Calculate arc angle
 		float holdAngle = angle;
 		angle = (right - left)/(lrOffset * 2.0f);
-		// angle = ((leftEncoder * DRIVE_DEGREE_TO_INCH) - (rightEncoder * DRIVE_DEGREE_TO_INCH))/(lrOffset * 2.0f);
 		aDelta = angle - holdAngle;
 
 		// If theres an arc
@@ -121,14 +115,14 @@ void tracking() {
 			radToDeg(roundUp(trackingData.getHeading(), 2))
 		);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
 
 // ----------------- Math utilities ----------------- //
 
 Vector2 toLocalCoordinates(Vector2 vec) {
-	double localAngle = trackingData.getHeading();
+	double localAngle = -trackingData.getHeading();
 	double angle = localAngle;
 
 	return rotateVector(vec, angle);
@@ -210,10 +204,11 @@ double Vector2::getAngle() {
 	return atan2(y, x);
 }
 
-void Vector2::normalize() {
+Vector2 Vector2::normalize() {
 	double divisor = this->getMagnitude();
-	x = x/divisor;
-	y = y/divisor;
+	double nx = x/divisor;
+	double ny = y/divisor;
+	return Vector2(nx, ny);
 }
 
 // ----------------- Vector2 Struct ----------------- //

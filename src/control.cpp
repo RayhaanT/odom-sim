@@ -5,16 +5,18 @@
 #include <chrono>
 #include <thread>
 
-#define TURN_TOLERANCE 0.04
-#define DISTANCE_TOLERANCE 0.7
+#define TURN_TOLERANCE 0.03
+#define DISTANCE_TOLERANCE 0.5
+#define TURN_INTEGRAL_TOLERANCE 0.3
+#define DISTANCE_INTEGRAL_TOLERANCE 3
 
-const float driveP = 0.2;
-const float driveI = 0.2;
-const float driveD = 0.1;
+const float driveP = 1.5;
+const float driveI = 0.1;
+const float driveD = 2.0;
 
-const float turnP = 1.5;
-const float turnI = 0.1;
-const float turnD = 0.5;
+const float turnP = 1.0;
+const float turnI = 0.0;
+const float turnD = 5.5;
 
 PIDInfo turnConstants(turnP, turnI, turnD);
 PIDInfo driveConstants(driveP, driveI, driveD);
@@ -32,12 +34,12 @@ void strafe(Vector2 dir, double turn) {
 void strafeToOrientation(Vector2 target, double angle) {
 	double time = glfwGetTime();
     angle = angle * M_PI / 180;
-    PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE);
-	PIDController turnController(angle, turnConstants, TURN_TOLERANCE);
+    PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE, DISTANCE_INTEGRAL_TOLERANCE);
+	PIDController turnController(angle, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
 
 	do {
-		Vector2 delta = trackingData.getPos() - target;
-		float strVel = distanceController.step(delta.getMagnitude());
+		Vector2 delta = target - trackingData.getPos();
+		float strVel = -distanceController.step(delta.getMagnitude());
 		Vector2 driveVec = rotateVector(Vector2(strVel, 0), delta.getAngle());
 		float tVel = 2 * turnController.step(trackingData.getHeading());
 
@@ -53,11 +55,11 @@ void strafeToOrientation(Vector2 target, double angle) {
 
 void strafeToPoint(Vector2 target) {
 	double time = glfwGetTime();
-	PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE);
+	PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE, DISTANCE_INTEGRAL_TOLERANCE);
 
 	do {
-		Vector2 delta = trackingData.getPos() - target;
-		float vel = distanceController.step(delta.getMagnitude());
+		Vector2 delta = target - trackingData.getPos();
+		float vel = -distanceController.step(delta.getMagnitude());
 		Vector2 driveVec = rotateVector(Vector2(vel, 0), delta.getAngle());
 		strafe(driveVec, 0);
 
@@ -72,7 +74,7 @@ void strafeToPoint(Vector2 target) {
 void turnToAngle(double target) {
     target = target * M_PI / 180;
     double time = glfwGetTime();
-	PIDController turnController(target, turnConstants, TURN_TOLERANCE);
+	PIDController turnController(target, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
 
 	do {
 		float vel = turnController.step(trackingData.getHeading());
@@ -92,11 +94,12 @@ PIDInfo::PIDInfo(double _p, double _i, double _d) {
     this->d = _d;
 }
 
-PIDController::PIDController(double _target, PIDInfo _constants, double _tolerance) {
+PIDController::PIDController(double _target, PIDInfo _constants, double _tolerance, double _integralTolerance = 1) {
 	this->target = _target;
     this->lastError = target;
     this->constants = _constants;
     this->tolerance = _tolerance;
+	this->integralTolerance = _integralTolerance;
 }
 
 double PIDController::step(double newSense) {
@@ -108,7 +111,7 @@ double PIDController::step(double newSense) {
     derivative = error - lastError;
     lastError = error;
     // Disable the integral until it enters a usable range of error
-    if(error == 0 || abs(error) > 1) {
+    if(error == 0 || abs(error) > integralTolerance) {
         integral = 0;
     }
     speed = (constants.p * error) + (constants.i * integral) + (constants.d * derivative);
@@ -126,8 +129,6 @@ double PIDController::step(double newSense) {
 		settling = false;
 		settled = false;
 	}
-
-	printf("integral: %f\n", integral * constants.i);
 
     return speed;
 }
