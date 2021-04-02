@@ -11,6 +11,9 @@
 #define TRACKING_WHEEL_DIAMETER 2.75f
 #define TRACKING_WHEEL_DEGREE_TO_INCH (M_PI * TRACKING_WHEEL_DIAMETER / 360)
 
+double radToDeg(double r);
+double degToRad(double d);
+
 typedef struct Vector2 {
 private:
 	double x, y;
@@ -56,7 +59,7 @@ public:
 void tracking();
 Vector2 rotateVector(Vector2 vec, double angle);
 Vector2 toLocalCoordinates(Vector2 vec);
-
+extern TrackingData trackingData;
 
 typedef struct VirtualEncoder {
 private:
@@ -72,6 +75,9 @@ public:
     void update(Vector2 dP, double dO); // params in local space
 
 } VirtualEncoder;
+
+Vector2 glmToCustom(glm::vec2 v);
+glm::vec2 customToGLM(Vector2 v);
 
 extern VirtualEncoder leftTrackingWheel;
 extern VirtualEncoder rightTrackingWheel;

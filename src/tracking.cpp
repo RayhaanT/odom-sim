@@ -19,7 +19,7 @@ const float bOffset = -BACK_WHEEL_OFFSET;
 #define TRACKING_WHEEL_DEGREE_TO_INCH (M_PI * TRACKING_WHEEL_DIAMETER / 360)
 #define TRACKING_WHEEL_INCH_TO_DEGREE (360 / (M_PI * TRACKING_WHEEL_DIAMETER))
 
-TrackingData trackingData(0, 0, 0);
+TrackingData trackingData(STARTX, STARTY, STARTO);
 VirtualEncoder leftTrackingWheel(-WHEELBASE / 2);
 VirtualEncoder rightTrackingWheel(WHEELBASE / 2);
 VirtualEncoder backTrackingWheel(BACK_WHEEL_OFFSET, true);
@@ -29,14 +29,21 @@ double roundUp(double v, int places) {
 	return std::ceil(v * mult) / mult;
 }
 
+double radToDeg(double r) {
+	return r * 180 / M_PI;
+}
+double degToRad(double d) {
+	return d * M_PI / 180;
+}
+
 void tracking() {
 
 	// Initialize variables
 	lLast = 0;
 	rLast = 0;
 	bLast = 0;
-	float x = 0;
-	float y = 0;
+	float x = trackingData.getX();
+	float y = trackingData.getY();
 	float left = 0;
 	float right = 0;
 	float lateral = 0;
@@ -108,11 +115,13 @@ void tracking() {
 
 		trackingData.update(x, y, angle);
 
-		std::cout << "dX: " << roundUp(trackingData.getX() - chassis.getPosition().x, 2) << std::endl;
-		std::cout << "dY: " << roundUp(trackingData.getY() - chassis.getPosition().y, 2) << std::endl;
-		std::cout << "dA: " << roundUp(trackingData.getHeading() - chassis.getOrientation(), 2) << std::endl;
+		printf("X: %f Y: %f A: %f\n",
+			roundUp(trackingData.getX(), 2),
+			roundUp(trackingData.getY(), 2),
+			radToDeg(roundUp(trackingData.getHeading(), 2))
+		);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 

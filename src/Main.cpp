@@ -14,6 +14,8 @@
 #include <chrono>
 #include <thread>
 #include "tracking.h"
+#include "macros.h"
+#include "autonomous.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -27,7 +29,7 @@ const float zoomStep = 0.05f;
 unsigned int driveVAO;
 unsigned int driveVBO;
 
-XDrive chassis;
+XDrive chassis(glm::vec2(STARTX, STARTY), STARTO);
 
 double straight = 0;
 double right = 0;;
@@ -196,7 +198,7 @@ int main()
 	backgroundShader.use();
 	backgroundShader.setInt("text", 1);
 	unsigned int backgroundTexture;
-	loadTexture(backgroundTexture, "textures/VexField.png");
+	loadTexture(backgroundTexture, "textures/VexField2.png");
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, backgroundTexture);
 
@@ -212,6 +214,8 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	std::thread autoThread(myAutonomous);
+
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -226,7 +230,9 @@ int main()
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		chassis.strafe(glm::vec2(right, straight), turn);
+		if(!suspendDrive) {
+			// chassis.strafe(glm::vec2(right, straight), turn);
+		}
 
 		//Pass matrices to the shader through a uniform
 		driveShader.use();

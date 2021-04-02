@@ -19,6 +19,10 @@ const double backOffset = 6;
 extern GLuint driveVBO;
 extern GLuint driveVAO;
 
+#define STARTX 24
+#define STARTY 0
+#define STARTO 0
+
 class XDrive {
 private:
     const double angularStoppingDecel = 12 * M_PI;
@@ -42,6 +46,7 @@ public:
 
     // Control
     void strafe(glm::vec2 drive, double turn);
+    void strafeGlobal(glm::vec2 dir, double turn);
 
     // Utility
     glm::vec2 localToGlobal(glm::vec2 v);
