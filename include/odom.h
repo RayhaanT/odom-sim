@@ -19,7 +19,7 @@ const double backOffset = 6;
 extern GLuint driveVBO;
 extern GLuint driveVAO;
 
-#define STARTX 38
+#define STARTX 36
 #define STARTY 8
 #define STARTO 0
 
