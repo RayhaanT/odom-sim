@@ -204,7 +204,37 @@ void homeRowAuto() {
     // Third goal
     turnToAngle(-135);
     strafeToOrientation(goalBR, -135);
-    shootStaggeredIntake();
+    shootStaggered();
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    stopRollers();
+
+    // Fourth ball
+    strafeToPoint(trackingData.getPos() + Vector2(-20, 20));
+    turnToAngle(-90);
+    in();
+    strafeToPoint(Vector2(129, 38.5));
+
+    // Fifth ball
+    strafeToOrientation(Vector2(100, 38.5), -40);
+    strafeToPoint(Vector2(113.5, 65.5));
+    stopRollers();
+
+    // Fourth goal
+    strafeToOrientation(goalCR, -90);
+    shootStaggered();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    stopRollers();
+
+    // Sixth ball
+    strafeToPoint(trackingData.getPos() + Vector2(-10, 0));
+    in();
+    strafeToOrientation(Vector2(129.5, 105), -60);
+    turnToAngle(45);
+    strafeToPoint(Vector2(117.5, 115));
+
+    // Fifth goal
+    strafeToOrientation(goalTR, -45);
+    shootStaggered();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 }
