@@ -15,12 +15,15 @@ const double backOffset = 6;
 // const double lrOffset = wheelbase/2;
 // const double rlOffset = wheelbase/2;
 
-const double angularStoppingDecel = 12 * M_PI;
-const double stoppingDecel = 100;
-const double acceleration = 48 + stoppingDecel;
+const double angularStoppingDecel = 15 * M_PI;
+const double stoppingDecel = 70;
+const double acceleration = 100 + stoppingDecel;
 const double angularAcceleration = 4 * M_PI;
 const double maxSpeed = 48;
 const double maxAngularSpeed = 4 * M_PI;
+
+const double viscousFrictionCoeff = 0.5;
+const double viscousAngularCoeff = 0.5;
 
 const double maxForce = acceleration / 2.828;
 

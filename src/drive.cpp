@@ -67,7 +67,9 @@ glm::vec2 calculateLinearFriction(glm::vec2 localVel, float friction) {
 
     Vector2 net = fr + fl + br + bl;
 
-    return (float)(net.getMagnitude() * friction / 2) * -glm::vec2(norm.x, norm.y);
+    glm::vec2 viscousFriction = -localVel * (float)viscousFrictionCoeff;
+
+    return (float)(net.getMagnitude() * friction / 2) * -glm::vec2(norm.x, norm.y) + viscousFriction;
 }
 
 void XDrive::update() {
@@ -76,12 +78,8 @@ void XDrive::update() {
 
     glm::vec2 driveForce = getNetForce();
 
-    // printf("NX: %f, NY: %f\n", accel.x, accel.y);
-
-    // printf("X: %f, Y: %f\n", accel.x, accel.y);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-    // printf("X: %f, Y: %f\n", driveForce.x, driveForce.y);
 
     double angAccel = getNetTorque();
     glm::vec2 oldVelocity = localVelocity;
@@ -95,29 +93,27 @@ void XDrive::update() {
     }
 
     // Friction
-    if(angularVelocity > 0) {
-        angularVelocity -= std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
-    }
-    else {
-        angularVelocity += std::min(angularStoppingDecel * deltaT, abs(angularVelocity));
+    if(angularVelocity != 0) {
+        double angVelSign = angularVelocity/abs(angularVelocity);
+        double angFriction = (-angularStoppingDecel * deltaT * angVelSign) + (-angularVelocity * deltaT * viscousAngularCoeff);
+        angularVelocity += angFriction;
+        if(angVelSign != angularVelocity / abs(angularVelocity)) {
+            angularVelocity = 0;
+        }
     }
 
     if(glm::length(localVelocity) != 0) {
         glm::vec2 lastVelDir = glm::normalize(localVelocity);
-        glm::vec2 linearFriction = calculateLinearFriction(localVelocity, (float)(stoppingDecel * deltaT));
+        glm::vec2 linearFriction = calculateLinearFriction(localVelocity * (float)deltaT, (float)(stoppingDecel * deltaT));
         localVelocity += linearFriction;
-        glm::vec2 norm = glm::normalize(localVelocity);
-        // printf("X1: %f Y1: %f X2: %f Y2: %f\n", lastVelDir.x, lastVelDir.y, glm::normalize(localVelocity).x, glm::normalize(localVelocity).y);
         if (glm::length(lastVelDir - glm::normalize(localVelocity)) > 0.1) {
-            printf("bruh\n");
+            // printf("bruh\n");
             localVelocity = glm::vec2(0, 0);
         }
     }
 
     glm::vec2 velocity = localToGlobal(localVelocity);
 
-    // std::cout << angularVelocity << std::endl;
-    // std::cout << velocity.x << " " << velocity.y << std::endl;
     glm::vec2 oldPosition = position;
     position = position + ((float)deltaT * velocity);
     orientation += angularVelocity * deltaT;
