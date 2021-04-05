@@ -46,13 +46,28 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
     motors[2].setPower((straight + right + turn) / scalar); // back  right
     motors[3].setPower((straight - right - turn) / scalar); // back  left
 
-    printf("%f %f %f %f\n",
-        (straight - right + turn) / scalar,
-        (straight + right - turn) / scalar,
-        (straight + right + turn) / scalar,
-        (straight - right - turn) / scalar);
-
     update();
+}
+
+glm::vec2 calculateLinearFriction(glm::vec2 localVel, float friction) {
+    glm::vec2 norm = glm::normalize(localVel);
+
+    double straight = norm.y;
+    double right = norm.x;
+
+    double scalar = 1;
+    if (abs(right) + abs(straight) > 1) {
+        scalar = abs(right) + abs(straight);
+    }
+
+    Vector2 fr = rotateVector(Vector2(0, (straight - right) / scalar), degToRad( 45));  // front right
+    Vector2 fl = rotateVector(Vector2(0, (straight + right) / scalar), degToRad(-45));  // front left
+    Vector2 br = rotateVector(Vector2(0, (straight + right) / scalar), degToRad(-45));  // back  right
+    Vector2 bl = rotateVector(Vector2(0, (straight - right) / scalar), degToRad( 45));  // back  left
+
+    Vector2 net = fr + fl + br + bl;
+
+    return (float)(net.getMagnitude() * friction / 2) * -glm::vec2(norm.x, norm.y);
 }
 
 void XDrive::update() {
@@ -89,7 +104,7 @@ void XDrive::update() {
 
     if(glm::length(localVelocity) != 0) {
         glm::vec2 lastVelDir = glm::normalize(localVelocity);
-        glm::vec2 linearFriction = (float)(-stoppingDecel * deltaT) * lastVelDir;
+        glm::vec2 linearFriction = calculateLinearFriction(localVelocity, (float)(stoppingDecel * deltaT));
         localVelocity += linearFriction;
         glm::vec2 norm = glm::normalize(localVelocity);
         // printf("X1: %f Y1: %f X2: %f Y2: %f\n", lastVelDir.x, lastVelDir.y, glm::normalize(localVelocity).x, glm::normalize(localVelocity).y);
@@ -98,19 +113,6 @@ void XDrive::update() {
             localVelocity = glm::vec2(0, 0);
         }
     }
-
-    // if(localVelocity.x > 0) {
-    //     localVelocity.x -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
-    // }
-    // else {
-    //     localVelocity.x += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.x));
-    // }
-    // if(localVelocity.y > 0) {
-    //     localVelocity.y -= std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
-    // }
-    // else {
-    //     localVelocity.y += std::min((float)(stoppingDecel * deltaT), abs(localVelocity.y));
-    // }
 
     glm::vec2 velocity = localToGlobal(localVelocity);
 
