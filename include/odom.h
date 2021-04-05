@@ -10,12 +10,12 @@
 #define _USE_MATH_DEFINES
 
 // Robot metrics
-const double wheelbase = 11.5;
+const double wheelbase = 10.25;
 const double backOffset = 6;
 // const double lrOffset = wheelbase/2;
 // const double rlOffset = wheelbase/2;
 
-const double angularStoppingDecel = 15 * M_PI;
+const double angularStoppingDecel = 10 * M_PI;
 const double stoppingDecel = 70;
 const double acceleration = 100 + stoppingDecel;
 const double angularAcceleration = 4 * M_PI;
@@ -23,13 +23,17 @@ const double maxSpeed = 48;
 const double maxAngularSpeed = 4 * M_PI;
 
 const double viscousFrictionCoeff = 0.5;
-const double viscousAngularCoeff = 0.5;
+const double viscousAngularCoeff = 0.75;
 
 const double maxForce = acceleration / 2.828;
 
 // GL containers
 extern GLuint driveVBO;
 extern GLuint driveVAO;
+
+#define STARTX 36
+#define STARTY 8
+#define STARTO 0
 
 double degToRad(double d);
 double radToDeg(double r);
@@ -80,6 +84,7 @@ public:
     // Control
     void strafe(glm::vec2 drive, double turn);
     void update();
+    void strafeGlobal(glm::vec2 dir, double turn);
 
     // Utility
     glm::vec2 localToGlobal(glm::vec2 v);
