@@ -92,7 +92,8 @@ void XDrive::update() {
     // Friction
     if(angularVelocity != 0) {
         double angVelSign = angularVelocity/abs(angularVelocity);
-        double angFriction = (-angularStoppingDecel * deltaT * angVelSign) + (-angularVelocity * deltaT * viscousAngularCoeff);
+        double angFriction = (-angularStoppingDecel * deltaT * angVelSign)
+            + (-angularVelocity * deltaT * viscousAngularCoeff);
         angularVelocity += angFriction;
         if(angVelSign != angularVelocity / abs(angularVelocity)) {
             angularVelocity = 0;
@@ -101,10 +102,11 @@ void XDrive::update() {
 
     if(glm::length(localVelocity) != 0) {
         glm::vec2 lastVelDir = glm::normalize(localVelocity);
-        glm::vec2 linearFriction = calculateLinearFriction(localVelocity * (float)deltaT, (float)(stoppingDecel * deltaT));
+        glm::vec2 linearFriction = calculateLinearFriction(
+            localVelocity * (float)deltaT,
+            (float)(stoppingDecel * deltaT));
         localVelocity += linearFriction;
         if (glm::length(lastVelDir - glm::normalize(localVelocity)) > 0.1) {
-            // printf("bruh\n");
             localVelocity = glm::vec2(0, 0);
         }
     }
