@@ -32,6 +32,9 @@ void myAutonomous() {
     //     // strafeToPoint(Vector2(144 - 30, 30));
     //     // strafeToPoint(Vector2(30, 30));
 
+    //     strafeToPoint(Vector2(40, 40));
+    //     strafeToPoint(Vector2(50, 40));
+
     //     turnToAngle(90);
     //     turnToAngle(180);
     //     turnToAngle(-90);

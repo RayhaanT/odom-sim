@@ -10,13 +10,13 @@
 #define TURN_INTEGRAL_TOLERANCE 0.3
 #define DISTANCE_INTEGRAL_TOLERANCE 3
 
-const float driveP = 1.25;
-const float driveI = 0.02;
-const float driveD = 2.5;
+const float driveP = 4.00; // 4.00
+const float driveI = 0.10;
+const float driveD = 16.00; // 16.00
 
 const float turnP = 1.0;
-const float turnI = 0.0;
-const float turnD = 5.5;
+const float turnI = 0.5;
+const float turnD = 2.5;
 
 PIDInfo turnConstants(turnP, turnI, turnD);
 PIDInfo driveConstants(driveP, driveI, driveD);
@@ -53,7 +53,7 @@ void strafeToOrientation(Vector2 target, double angle) {
 		Vector2 delta = target - trackingData.getPos();
 		float strVel = -distanceController.step(delta.getMagnitude());
 		Vector2 driveVec = rotateVector(Vector2(strVel, 0), delta.getAngle());
-		float tVel = 2 * turnController.step(trackingData.getHeading());
+		float tVel = 20 * turnController.step(trackingData.getHeading());
 
 		strafe(driveVec, tVel);
 
@@ -123,6 +123,10 @@ double PIDController::step(double newSense) {
     // calculate error terms
     sense = newSense;
     error = target - sense;
+	if(first) {
+		lastError = error;
+		first = false;
+	}
     integral += error;
     derivative = error - lastError;
     lastError = error;

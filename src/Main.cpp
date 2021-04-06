@@ -223,7 +223,7 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// std::thread autoThread(myAutonomous);
+	std::thread autoThread(myAutonomous);
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))

@@ -21,6 +21,7 @@ private:
     double target;
     double settleStart;
     bool settling, settled = false;
+    bool first = true;
 
     // constants
     double tolerance;
