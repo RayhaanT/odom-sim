@@ -123,9 +123,18 @@ void tracking() {
 
 Vector2 toLocalCoordinates(Vector2 vec) {
 	double localAngle = -trackingData.getHeading();
-	double angle = localAngle;
 
-	return rotateVector(vec, angle);
+	return rotateVector(vec, localAngle);
+}
+
+Vector2 toGlobalCoordinates(Vector2 vec) {
+	double localAngle = trackingData.getHeading();
+
+	return rotateVector(vec, localAngle);
+}
+
+double dot(Vector2 v1, Vector2 v2) {
+	return (v1.getX() * v2.getX()) + (v1.getY() * v2.getY());
 }
 
 Vector2 rotateVector(Vector2 vec, double angle) {
@@ -157,6 +166,9 @@ double TrackingData::getHeading() {
 }
 Vector2 TrackingData::getPos() {
 	return pos;
+}
+Vector2 TrackingData::getForward() {
+	return toGlobalCoordinates(Vector2(0, 1));
 }
 
 void TrackingData::update(double _x, double _y, double _h) {

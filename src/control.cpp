@@ -50,17 +50,32 @@ void strafeToOrientation(Vector2 target, double angle) {
 	PIDController turnController(angle, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
 
 	do {
-		Vector2 delta = target - trackingData.getPos();
-		float strVel = -distanceController.step(delta.getMagnitude());
-		Vector2 driveVec = rotateVector(Vector2(strVel, 0), delta.getAngle());
-		float tVel = 20 * turnController.step(trackingData.getHeading());
+		// Angle controller
+		float tVel = turnController.step(trackingData.getHeading());
+
+		// Distance controller
+		Vector2 delta = target - trackingData.getPos(); // distance vector
+		Vector2 dNorm = delta.normalize();
+
+		// Get the "forward" vector and calculate the dot product
+		Vector2 alignment = rotateVector(dNorm, turnController.getError());
+		float dotScalar = dot(alignment, dNorm);
+
+		// Step drive PID if dot is not negative
+		Vector2 driveVec(0, 0);
+		if(dotScalar > 0) {
+			float strVel = -distanceController.step(delta.getMagnitude() * dotScalar);
+			driveVec = rotateVector(Vector2(strVel, 0), delta.getAngle());
+		}
 
 		strafe(driveVec, tVel);
 
+		// Timeout after 4 secs if something goes wrong
 		if(glfwGetTime() - time > 4) {
 			break;
 		}
 
+		// pros::delay(20) equivalent
     	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	} while(!distanceController.isSettled() || !turnController.isSettled());
 }
@@ -164,7 +179,7 @@ void PIDController::reset() {
 }
 
 double PIDController::getError() {
-    return error;
+    return target - sense;
 }
 bool PIDController::isSettled() {
 	return settled;
