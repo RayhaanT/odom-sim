@@ -9,12 +9,11 @@
 #include "math.h"
 #define _USE_MATH_DEFINES
 
-// Robot metrics
+// Robot metrics (in)
 const double wheelbase = 10.25;
 const double backOffset = 6;
-// const double lrOffset = wheelbase/2;
-// const double rlOffset = wheelbase/2;
 
+// Manually tuned physical constants
 const double angularStoppingDecel = 10 * M_PI;
 const double stoppingDecel = 70;
 const double acceleration = 100 + stoppingDecel;
@@ -31,23 +30,29 @@ const double maxForce = acceleration / 2.828;
 extern GLuint driveVBO;
 extern GLuint driveVAO;
 
+// Starting configuration (in/rad)
 #define STARTX 36
 #define STARTY 8
 #define STARTO 0
 
+// angle conversion
 double degToRad(double d);
 double radToDeg(double r);
 
+// Simulate a motor
 class Motor {
 private:
-    const double jerk = 10000; // Consider nearly infinite jerk
-    const double stoppingJerk = 5000; // Slightly less stopping jerk
+    // Constants
+    const double jerk = 10000; // Consider very high (near instant) jerk
     glm::vec2 position;
     double orientation;
+
+    // State
     double output;
     double lastUpdate = 0;
 
 public:
+    // Constructors
     Motor();
     Motor(glm::vec2 p, double o);
 
@@ -56,8 +61,10 @@ public:
     glm::vec2 getPosition();
 };
 
+// Class that manages the simulated holonomic chassis
 class XDrive {
 private:
+    // State
     glm::vec2 localVelocity;
     double angularVelocity;
 
@@ -65,6 +72,7 @@ private:
     double orientation;
     double lastUpdate;
 
+    // Drive motors in X-drive configuration
     std::vector<Motor> motors = {
         Motor(glm::vec2( wheelbase / 24,  wheelbase / 24), degToRad( 45)), // front right
         Motor(glm::vec2(-wheelbase / 24,  wheelbase / 24), degToRad(-45)), // front left
@@ -72,6 +80,7 @@ private:
         Motor(glm::vec2(-wheelbase / 24, -wheelbase / 24), degToRad( 45))  // back  left
     };
 
+    // Forces
     glm::vec2 getNetForce();
     double getNetTorque();
 
@@ -81,7 +90,7 @@ public:
     XDrive(glm::vec2 startPos);
     XDrive(glm::vec2 startPos, double startOrientation);
 
-    // Control
+    // Interface
     void strafe(glm::vec2 drive, double turn);
     void update();
     void strafeGlobal(glm::vec2 dir, double turn);
@@ -91,6 +100,7 @@ public:
     glm::vec2 globalToLocal(glm::vec2 vec);
     glm::mat4 getMatrix();
 
+    // Getters
     glm::vec2 getPosition();
     double getOrientation();
 };

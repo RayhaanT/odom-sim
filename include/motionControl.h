@@ -5,6 +5,7 @@
 
 #define SETTLE_DELAY 0.2
 
+// Data structure for PID constants
 typedef struct PIDInfo {
     double p, i, d, motor;
 
@@ -12,13 +13,17 @@ typedef struct PIDInfo {
     PIDInfo() {};
 } PIDInfo;
 
+// Manages closed PID loops
 typedef struct PIDController {
 private:
+    // PID vars
 	double sense;
 	double lastError;
 	double integral;
 	double error, derivative, speed;
     double target;
+
+    // settling/state
     double settleStart;
     bool settling, settled = false;
     bool first = true;
@@ -43,3 +48,5 @@ void strafe(Vector2 dir, double turn);
 void strafeToOrientation(Vector2 target, double angle);
 void strafeToPoint(Vector2 target);
 void turnToAngle(double target);
+
+void strafeRelative(Vector2 offset, double aOffset = 0);

@@ -64,15 +64,20 @@ Vector2 toGlobalCoordinates(Vector2 vec);
 double dot(Vector2 v1, Vector2 v2);
 extern TrackingData trackingData;
 
+// Simulate the chassis' tracking wheels, replaces pros::ADIEncoder
 typedef struct VirtualEncoder {
 private:
+	// State
     double ticks;
     double offset; // Positive = right
     bool lateral;
 
 public:
+	// Constructors
     VirtualEncoder(double _offset, bool _lateral = false);
 	VirtualEncoder();
+
+	// Interface
     void reset();
     long int read();
     void update(Vector2 dP, double dO); // params in local space

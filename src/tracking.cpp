@@ -19,23 +19,47 @@ const float bOffset = -BACK_WHEEL_OFFSET;
 #define TRACKING_WHEEL_DEGREE_TO_INCH (M_PI * TRACKING_WHEEL_DIAMETER / 360)
 #define TRACKING_WHEEL_INCH_TO_DEGREE (360 / (M_PI * TRACKING_WHEEL_DIAMETER))
 
+// Define externs declared in header
 TrackingData trackingData(STARTX, STARTY, STARTO);
 VirtualEncoder leftTrackingWheel(-WHEELBASE / 2);
 VirtualEncoder rightTrackingWheel(WHEELBASE / 2);
 VirtualEncoder backTrackingWheel(BACK_WHEEL_OFFSET, true);
 
+/**
+ * Round a double up to n places
+ * 
+ * @param v the double to round
+ * @param places the number of decimal places to keep
+ * @return the rounded double
+*/
 double roundUp(double v, int places) {
     const double mult = std::pow(10.0, places);
 	return std::ceil(v * mult) / mult;
 }
 
+/**
+ * Convert an angle from radians to degrees
+ * 
+ * @param r the angle in radians
+ * @return the angle in degrees
+*/
 double radToDeg(double r) {
 	return r * 180 / M_PI;
 }
+/**
+ * Convert and angle from degrees to radians
+ * 
+ * @param d the angle in degrees
+ * @return the angle in radians
+*/
 double degToRad(double d) {
 	return d * M_PI / 180;
 }
 
+/**
+ * Track the chassis' pos/orientation given virtualized tracking
+ * wheel data. Run in its own thread, thus while(1).
+*/
 void tracking() {
 
 	// Initialize variables
@@ -121,22 +145,47 @@ void tracking() {
 
 // ----------------- Math utilities ----------------- //
 
+/**
+ * Rotate a direction vector to local space (relative to the robot chassis)
+ * 
+ * @param vec the vector to rotate
+ * @return rotated vector
+*/
 Vector2 toLocalCoordinates(Vector2 vec) {
 	double localAngle = -trackingData.getHeading();
 
 	return rotateVector(vec, localAngle);
 }
 
+/**
+ * Rotate a direction vector to global space (relative to the field)
+ * 
+ * @param vec the vector to rotate
+ * @return rotated vector
+*/
 Vector2 toGlobalCoordinates(Vector2 vec) {
 	double localAngle = trackingData.getHeading();
 
 	return rotateVector(vec, localAngle);
 }
 
+/**
+ * Get the dot product of 2 vectors
+ * 
+ * @param v1 vector a
+ * @param v2 vector b
+ * @return a dot b
+*/
 double dot(Vector2 v1, Vector2 v2) {
 	return (v1.getX() * v2.getX()) + (v1.getY() * v2.getY());
 }
 
+/**
+ * Rotate a 2 dimensional vector by a given angle
+ * 
+ * @param vec the vector
+ * @param angle the angle in radians
+*/
 Vector2 rotateVector(Vector2 vec, double angle) {
 	// x = cos(a), y = sin(a)
 	// cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
@@ -150,6 +199,13 @@ Vector2 rotateVector(Vector2 vec, double angle) {
 
 // ----------------- Tracking Data Struct ----------------- //
 
+/**
+ * Create a TrackingData instance (one per chassis)
+ * 
+ * @param _x starting x coord in inches
+ * @param _x starting y coord in inches
+ * @param _h starting heading in radians
+*/
 TrackingData::TrackingData(double _x, double _y, double _h) {
 	this->pos = Vector2(_x, _y);
 	this->heading = fmod(_h, 2*M_PI);
@@ -167,10 +223,22 @@ double TrackingData::getHeading() {
 Vector2 TrackingData::getPos() {
 	return pos;
 }
+/**
+ * Get the chassis' forward vector in global space
+ * 
+ * @return the forward vector (magnitude = 1)
+*/
 Vector2 TrackingData::getForward() {
 	return toGlobalCoordinates(Vector2(0, 1));
 }
 
+/**
+ * Update the chassis position
+ * 
+ * @param _x new x coord in inches
+ * @param _x new y coord in inches
+ * @param _h new heading in radians
+*/
 void TrackingData::update(double _x, double _y, double _h) {
 	this->pos = Vector2(_x, _y);
 	this->heading = fmod(_h, 2 * M_PI);
@@ -178,16 +246,15 @@ void TrackingData::update(double _x, double _y, double _h) {
 
 // ----------------- Vector2 Struct ----------------- //
 
+// Operator overrides for vector equivalents
 Vector2 operator + (const Vector2 &v1, const Vector2 &v2) {
 	Vector2 vec(v1.x + v2.x, v1.y + v2.y);
 	return vec;
 }
-
 Vector2 operator - (const Vector2 &v1, const Vector2 &v2) {
 	Vector2 vec(v1.x - v2.x, v1.y - v2.y);
 	return vec;
 }
-
 Vector2 operator * (const Vector2 &v1, double scalar) {
 	Vector2 vec(v1.x * scalar, v1.y * scalar);
 	return vec;
@@ -212,10 +279,19 @@ double Vector2::getY() {
 double Vector2::getMagnitude() {
 	return sqrt((x*x) + (y*y));
 }
+/**
+ * Get the angle in radians between the vector and
+ * the positive x-axis
+ * 
+ * @return the angle in radians
+*/
 double Vector2::getAngle() {
 	return atan2(y, x);
 }
 
+/**
+ * Return a normalized (magnitude = 1) version of this vector
+*/
 Vector2 Vector2::normalize() {
 	double divisor = this->getMagnitude();
 	double nx = x/divisor;
@@ -225,6 +301,13 @@ Vector2 Vector2::normalize() {
 
 // ----------------- VirtualEncoder Struct ----------------- //
 
+/**
+ * Create a virtual tracking wheel encoder
+ * 
+ * @param _offset the perpendicular distance, in inches, between the tracking
+ *                wheel and tracking centre
+ * @param _lateral true if the wheel is perpendicular to the chassis' forward
+*/
 VirtualEncoder::VirtualEncoder(double _offset, bool _lateral) {
     this->offset = _offset;
     this->lateral = _lateral;
@@ -240,12 +323,19 @@ void VirtualEncoder::reset() {
     this->ticks = 0;
 }
 
+/**
+ * Update the encoder reading after a motion
+ * 
+ * @param dP the change in chassis position
+ * @param dO the change in chassis orientation
+*/
 void VirtualEncoder::update(Vector2 dP, double dO) {
 	if(dO == 0) {
 		this->ticks += (lateral ? dP.getX() : dP.getY()) * TRACKING_WHEEL_INCH_TO_DEGREE;
 		return;
 	}
 
+	// Solve odometry equations for dR/dL, then convert and increment
 	Vector2 disp = rotateVector(dP, -dO/2);
 	double newX = disp.getX() / 2 / sin(dO/2);
 	double newY = disp.getY() / 2 / sin(dO/2);

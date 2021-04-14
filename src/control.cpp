@@ -21,6 +21,13 @@ const float turnD = 2.5;
 PIDInfo turnConstants(turnP, turnI, turnD);
 PIDInfo driveConstants(driveP, driveI, driveD);
 
+/**
+ * Convert an angle from negative to positive, "flipping"
+ * it around the positive x-axis
+ * 
+ * @param angle the angle to convert in radians
+ * @return the converted angle in radians
+*/
 double flipAngle(double angle) {
 	if(angle > 0) {
 		return -(2 * M_PI) + angle;
@@ -30,16 +37,62 @@ double flipAngle(double angle) {
 	}
 }
 
+/**
+ * Get the distance from a starting point to a target
+ * Made obsolete by the Vector2 class
+ * 
+ * @param tx x-coord of the target
+ * @param tx y-coord of the target
+ * @param sx x-coord of the start
+ * @param sy y-coord of the start
+ * @return the distance
+*/
 float getDistance(float tx, float ty, float sx, float sy) {
 	float xDiff = tx - sx;
 	float yDiff = ty - sy;
 	return sqrt((xDiff*xDiff) + (yDiff*yDiff));
 }
 
+/**
+ * Interface with the XDrive strafe class using custom
+ * vector implementation
+ * Stands in for the original PROS-based strafe function
+ * used by the motion algos
+ * 
+ * @param dir the direction to strafe
+ * @param turn the speed to turn at
+*/
 void strafe(Vector2 dir, double turn) {
     chassis.strafeGlobal(customToGLM(dir), turn);
 }
 
+/**
+ * Strafe to a new position relative to the current position
+ * 
+ * @param offset the desired offset from the current pos in local space
+ * @param aOffset the desired offset from the current angle in radians
+*/
+void strafeRelative(Vector2 offset, double aOffset) {
+	if(offset.getMagnitude() == 0) {
+		turnToAngle(trackingData.getHeading() + aOffset);
+	}
+	else if(aOffset == 0) {
+		strafeToPoint(trackingData.getPos() + offset);
+	}
+	else {
+		strafeToOrientation(trackingData.getPos() + offset, trackingData.getHeading() + aOffset);
+	}
+	return;
+}
+
+/**
+ * Strafe to a point on the field and turn to a
+ * given angle at the same time. Prioritizes turning
+ * via vector projection to prevent the chassis from arcing.
+ * 
+ * @param target the target spot on the field in global space
+ * @param angle the desired final angle in global space
+*/
 void strafeToOrientation(Vector2 target, double angle) {
 	double time = glfwGetTime();
     angle = angle * M_PI / 180;
@@ -80,6 +133,11 @@ void strafeToOrientation(Vector2 target, double angle) {
 	} while(!distanceController.isSettled() || !turnController.isSettled());
 }
 
+/**
+ * Strafe to a point on the field without turning
+ * 
+ * @param target the target spot on the field in global space
+*/
 void strafeToPoint(Vector2 target) {
 	double time = glfwGetTime();
 	PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE, DISTANCE_INTEGRAL_TOLERANCE);
@@ -98,6 +156,11 @@ void strafeToPoint(Vector2 target) {
 	} while(!distanceController.isSettled());
 }
 
+/**
+ * Turn to a given angle without strafing
+ * 
+ * @param target the target angle in global space
+*/
 void turnToAngle(double target) {
     target = target * M_PI / 180;
 	if(abs(target - trackingData.getHeading()) > degToRad(180)) {
@@ -133,6 +196,12 @@ PIDController::PIDController(double _target, PIDInfo _constants, double _toleran
 	this->integralTolerance = _integralTolerance;
 }
 
+/**
+ * Step the PID loop forward with updated sensor input
+ * 
+ * @param newSense the updated sensor reading
+ * @return the output determine by the PID algorithm
+*/
 double PIDController::step(double newSense) {
 
     // calculate error terms

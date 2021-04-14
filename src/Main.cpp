@@ -40,6 +40,9 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+/**
+ * Convert a coordinate on screen (in pixels) to world
+*/
 glm::vec2 screenToWorldCoordinates(glm::vec2 screenPos) {
 	float xpos = screenPos.x;
 	float ypos = screenPos.y;
@@ -56,6 +59,9 @@ glm::vec2 screenToWorldCoordinates(float x, float y) {
 	return screenToWorldCoordinates(glm::vec2(x, y));
 }
 
+/**
+ * Process zoom commands
+*/
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	if(yoffset > 0) {
 		zoom = glm::scale(zoom, glm::vec3(1.0f + zoomStep));
@@ -67,6 +73,9 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	}
 }
 
+/**
+ * Process drive commands from user
+*/
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
 
 	double _right = 0;
@@ -103,19 +112,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	turn = _turn;
 }
 
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-
-}
-
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT)
-	{
-		if (action == GLFW_PRESS)
-		{
-		}
-	}
-}
-
 int main()
 {
 	std::thread trackingThread(tracking);
@@ -143,14 +139,16 @@ int main()
 	void framebuffer_size_callback(GLFWwindow * window, int width, int height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);	
 	
+	float s = 140.5/144; // the field is 140.5 in wide but everything is on a 144 in scale
+
 	float squareVerticesTextured[] {
 		//Vertices             //Texture coords
-		-1.0f,  -1.0f, 0.0f,   0.0f, 1.0f,
-		-1.0f,   1.0f, 0.0f,   0.0f, 0.0f,
-		 1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
-		 1.0f,  -1.0f, 0.0f,   1.0f, 1.0f,
-		-1.0f,   1.0f, 0.0f,   0.0f, 0.0f,
-		 1.0f,   1.0f, 0.0f,   1.0f, 0.0f
+		-s, -s, 0.0f,   0.0f, 1.0f,
+		-s,  s, 0.0f,   0.0f, 0.0f,
+		 s, -s, 0.0f,   1.0f, 1.0f,
+		 s, -s, 0.0f,   1.0f, 1.0f,
+		-s,  s, 0.0f,   0.0f, 0.0f,
+		 s,  s, 0.0f,   1.0f, 0.0f
 	};
 
 	float squareVertices[] {
@@ -213,10 +211,7 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 	//Set mouse input callback function
-	void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glPointSize(8);
 	glLineWidth(3);
@@ -228,17 +223,21 @@ int main()
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
 	{
+		// Quit
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, true);
 		}
 
+		// Frame deltas
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		// Clear
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Check if auto is running before allowing manual drive
 		if(!suspendDrive) {
 			chassis.strafe(glm::vec2(right, straight), turn);
 		}

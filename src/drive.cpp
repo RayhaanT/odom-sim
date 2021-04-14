@@ -23,6 +23,14 @@ XDrive::XDrive(glm::vec2 startPos, double startOrientation) {
     this->position = startPos;
 }
 
+/**
+ * Drive the X-drive in a given direction, while also turning
+ * Parameters are in global space
+ * Meant to mimic the strafe function in the robot code
+ * 
+ * @param drive the direction in which to drive, ||dir|| <= 1
+ * @param turn the speed to turn at, -1 <= turn <= 1
+*/
 void XDrive::strafeGlobal(glm::vec2 dir, double turn) {
     Vector2 cDir = toLocalCoordinates(glmToCustom(dir));
 	double xVel = cDir.getX();
@@ -31,7 +39,13 @@ void XDrive::strafeGlobal(glm::vec2 dir, double turn) {
     strafe(glm::vec2(xVel, yVel), turn);
 }
 
-// turn on interval [-1, 1], ||drive|| <= 1
+/**
+ * Drive the X-drive in a given direction, while also turning
+ * Parameters are in local space
+ * 
+ * @param drive the direction in which to drive, ||drive|| <= 1
+ * @param turn the speed to turn at, -1 <= turn <= 1
+*/
 void XDrive::strafe(glm::vec2 drive, double turn) {
     double straight = drive.y;
     double right = drive.x;
@@ -49,6 +63,16 @@ void XDrive::strafe(glm::vec2 drive, double turn) {
     update();
 }
 
+/**
+ * Scale the magnitude of linear friction based on direction.
+ * Because of X-drive configuration and omni-wheels, friction varies
+ * depending on the direction of motion relative to the wheels.
+ * Also applies viscous friction (things like drag and resistance
+ * from lubricants, dependent on speed)
+ * 
+ * @param localVel the velocity of the robot in local space
+ * @param friction the magnitude of sliding friction
+*/
 glm::vec2 calculateLinearFriction(glm::vec2 localVel, float friction) {
     glm::vec2 norm = glm::normalize(localVel);
 
@@ -72,6 +96,10 @@ glm::vec2 calculateLinearFriction(glm::vec2 localVel, float friction) {
     return (float)(net.getMagnitude() * friction / 2) * -glm::vec2(norm.x, norm.y) + viscousFriction;
 }
 
+/**
+ * Update the chassis' state depending on motor outputs
+ * and past state. Also updates virtual tracking wheels
+*/
 void XDrive::update() {
     auto t = glfwGetTime();
     auto deltaT = t - lastUpdate;
@@ -89,7 +117,7 @@ void XDrive::update() {
         angularVelocity = angularVelocity / abs(angularVelocity) * maxAngularSpeed;
     }
 
-    // Friction
+    // Angular resistance
     if(angularVelocity != 0) {
         double angVelSign = angularVelocity/abs(angularVelocity);
         double angFriction = (-angularStoppingDecel * deltaT * angVelSign)
@@ -100,6 +128,7 @@ void XDrive::update() {
         }
     }
 
+    // Linear resistance
     if(glm::length(localVelocity) != 0) {
         glm::vec2 lastVelDir = glm::normalize(localVelocity);
         glm::vec2 linearFriction = calculateLinearFriction(
@@ -111,6 +140,7 @@ void XDrive::update() {
         }
     }
 
+    // Apply velocities to positions
     glm::vec2 velocity = localToGlobal(localVelocity);
 
     glm::vec2 oldPosition = position;
@@ -119,6 +149,7 @@ void XDrive::update() {
     orientation = fmod(orientation, 2 * M_PI);
     lastUpdate = t;
 
+    // Update tracking wheels
     Vector2 dP = glmToCustom(globalToLocal(position - oldPosition));
     double dO = angularVelocity * deltaT;
 
@@ -127,6 +158,9 @@ void XDrive::update() {
     backTrackingWheel.update(dP, dO);
 }
 
+/**
+ * Returns the net force vector acting on the chassis
+*/
 glm::vec2 XDrive::getNetForce() {
     glm::vec2 net(0, 0);
     for(auto m : motors) {
@@ -135,6 +169,10 @@ glm::vec2 XDrive::getNetForce() {
     return net;
 }
 
+/**
+ * Returns the magnitude of net torque acting on the chassis
+ * Positive = clockwise
+*/
 double XDrive::getNetTorque() {
     glm::vec3 net(0, 0, 0);
     for(auto m : motors) {
@@ -143,14 +181,32 @@ double XDrive::getNetTorque() {
     return net.z;
 }
 
+/**
+ * Rotate a glm direction vector to global space (relative to the field)
+ * 
+ * @param vec the vector to rotate
+ * @return rotated vector
+*/
 glm::vec2 XDrive::localToGlobal(glm::vec2 vec) {
     return rotateVector(vec, orientation);
 }
 
+/**
+ * Rotate a glm direction vector to local space (relative to the robot chassis)
+ * 
+ * @param vec the vector to rotate
+ * @return rotated vector
+*/
 glm::vec2 XDrive::globalToLocal(glm::vec2 vec) {
     return rotateVector(vec, -orientation);
 }
 
+/**
+ * Get the 4x4 matrix used to transform the chassis into the
+ * correct position for rendering
+ * 
+ * @return the 4x4 matrix
+*/
 glm::mat4 XDrive::getMatrix() {
     glm::mat4 mat;
     mat = glm::scale(mat, glm::vec3(2.0f/144));
@@ -159,6 +215,12 @@ glm::mat4 XDrive::getMatrix() {
     return mat;
 }
 
+/**
+ * Rotate a 2 dimensional glm vector by a given angle
+ * 
+ * @param vec the vector
+ * @param angle the angle in radians
+*/
 glm::vec2 rotateVector(glm::vec2 vec, double angle) {
     // x = cos(a), y = sin(a)
     // cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
@@ -196,37 +258,33 @@ glm::vec2 Motor::getPosition() {
     return position;
 }
 
-// -1 <= power <= 1
+/**
+ * Command the motor to output at a certain power
+ * 
+ * @param power the desired output as a percentage, -1 <= power <= 1
+*/
 void Motor::setPower(double power) {
     if(abs(power) > 1) {
         power = power > 0 ? 1 : -1;
     }
 
-    output = maxForce * power;
+    auto t = glfwGetTime();
+    auto deltaT = t - lastUpdate;
 
-    // auto t = glfwGetTime();
-    // auto deltaT = t - lastUpdate;
+    auto target = power * maxForce;
 
-    // auto target = power * maxForce;
-    // // If the target and current output are opposites
-    // if(output/abs(output) != target/abs(target)) {
-    //     output += std::min(jerk * deltaT * power, target - output);
-    // }
-    // else {
-    //     // If the output is exceeding the target
-    //     if(abs(output) > abs(target)) {
-    //         printf("%f\n", output);
-    //         output -= (output/abs(output)) * stoppingJerk;
-    //     }
-    //     // If the output is less than the target
-    //     else {
-    //         output += std::min(jerk * deltaT * power, target - output);
-    //     }
-    // }
+    // Check if power needs to go up or down
+    auto delta = target - output;
+    int deltaSign = delta/abs(delta);
 
-    // if(abs(output) > maxForce) {
-    //     output = output > 0 ? maxForce : -maxForce;
-    // }
+    // Increment power
+    output += deltaSign * jerk * deltaT;
 
-    // lastUpdate = t;
+    // If the output overshot then reset to the target
+    delta = target - output;
+    if(delta/abs(delta) != deltaSign) {
+        output = target;
+    }
+
+    lastUpdate = t;
 }

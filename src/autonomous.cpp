@@ -17,6 +17,9 @@ Vector2 goalBC(73, 24);
 void fullAuto();
 void homeRowAuto();
 
+/**
+ * Autonomous function. Runs in a thread started in main
+*/
 void myAutonomous() {
     // UNCOMMENT THIS IN THE PROS PROJECT
     // update = pros::Task(updateSysMan, (void *)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Update system manager");
@@ -25,6 +28,7 @@ void myAutonomous() {
 
     suspendDrive = true;
 
+    // ------------- Used to test PID constants ------------- //
     // while(1) {
     //     strafeToPoint(Vector2(144 / 2, 144 / 2));
     //     // strafeToPoint(Vector2(30, 144 - 30));
@@ -41,6 +45,7 @@ void myAutonomous() {
     //     turnToAngle(90);
     // }
 
+    // Run the desired auto routine
     fullAuto();
 
     suspendDrive = false;
@@ -51,6 +56,9 @@ void myAutonomous() {
 	// update.remove();
 }
 
+/**
+ * Autonomous routines that scores >=1 ball in each goal
+*/
 void fullAuto() {
     flipout();
 
@@ -169,6 +177,9 @@ void fullAuto() {
     shootStaggeredIntake();
 }
 
+/**
+ * Auto routine that expands on the in-person tested home row routine
+*/
 void homeRowAuto() {
     flipout();
 

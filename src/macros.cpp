@@ -7,6 +7,9 @@ bool suspendDrive = false;
 
 int callbackCount = 0;
 
+// -------------------- These don't do anything in the simulator due to not having access to motor functions -------------------- //
+// --------------------- See https://github.com/jfssvex/vex2020-21/tree/master/src for what these represent --------------------- //
+
 void flipout() {
     printf("FLIPOUT\n");
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
