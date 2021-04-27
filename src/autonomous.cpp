@@ -5,14 +5,14 @@
 #include <thread>
 
 // Goals
-Vector2 goalBL(16, 19.5);
+Vector2 goalBL(17.5, 5.5);
 Vector2 goalCL(20, 74);
 Vector2 goalTL(15, 128);
 Vector2 goalTC(74, 127);
 Vector2 goalTR(130, 131);
-Vector2 goalCR(122.5, 76);
-Vector2 goalBR(128, 20);
-Vector2 goalBC(73, 24);
+Vector2 goalCR(122, 67);
+Vector2 goalBR(140 - 17.5, 5.5);
+Vector2 goalBC(70, 7);
 
 void fullAuto();
 void homeRowAuto();
@@ -46,7 +46,71 @@ void myAutonomous() {
     // }
 
     // Run the desired auto routine
-    fullAuto();
+    // fullAuto();
+
+    strafeToPoint(Vector2(70, 70));
+    turnToAngle(90);
+    turnToAngle(190);
+    turnToAngle(359);
+    return;
+
+    // Flipout and get second ball
+    flipout();
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+    in();
+    strafeRelative(Vector2(0, 18), 0);
+	stopRollers();
+
+    // Score a ball in the first goal
+    alignAndShoot(goalBL, 135, 1);
+
+    // Get the center-bottom-middle ball
+	strafeToPoint(Vector2(24, 18));
+	Vector2 secondBall(36 + 36, 42);
+	turnToAngle(radToDeg((secondBall-trackingData.getPos()).getAngle()) - 90);
+	in();
+	strafeToPoint(secondBall);
+
+    // Score 2 in the center-bottom goal
+    turnToAngle(-180);
+    stopRollers();
+    alignAndShoot(goalBC, radToDeg(trackingData.getHeading()), 2);
+
+    // Pick up 4th ball
+	strafeToPoint(secondBall);
+	Vector2 thirdBall(secondBall.getX() + 36, secondBall.getY() - 26);
+	turnToAngle(radToDeg((thirdBall - trackingData.getPos()).getAngle()) - 90);
+	in();
+	strafeToPoint(thirdBall);
+
+    // Score 1 in the bottom-right
+    turnToAngle(-135);
+    stopRollers();
+    alignAndShoot(goalBR, -135, 1);
+
+    // Back up and pick up the 5th ball
+    strafeRelative(Vector2(-20, 20));
+    in();
+    printf("\n\nBRUH\n\n");
+    strafeToOrientation(Vector2(114.5, 45), -10);
+    printf("\n\nBRUH\n\n");
+
+    strafeToPoint(Vector2(114.5, 67));
+
+    // Score in the 4th goal
+    turnToAngle(-90);
+    stopRollers();
+    alignAndShoot(goalCR, -90, 1);
+    strafeRelative(Vector2(-20, 0));
+
+    Vector2 topRightBall = thirdBall + Vector2(0, 86);
+    in();
+    strafeToOrientation(topRightBall, -1);
+    turnToAngle(-50);
+    stopRollers();
+    strafeToPoint(topRightBall + Vector2(20, 10));
+    shootStaggered(3);
+    stopRollers();
 
     suspendDrive = false;
 
@@ -70,7 +134,7 @@ void fullAuto() {
 
     // First goal
     strafeToOrientation(goalBL, 135);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -86,7 +150,7 @@ void fullAuto() {
 
     // Second goal
     strafeToOrientation(goalCL, 90);
-    shootStaggered();
+    shootStaggered(2);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     stopRollers();
 
@@ -100,7 +164,7 @@ void fullAuto() {
 
     // Third goal
     strafeToOrientation(goalTL, 45);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -112,7 +176,7 @@ void fullAuto() {
     // Fourth goal
     stopRollers();
     strafeToOrientation(goalTC, 0);
-    shootStaggered();
+    shootStaggered(2);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     stopRollers();
 
@@ -125,7 +189,7 @@ void fullAuto() {
     // Fifth goal
     stopRollers();
     strafeToOrientation(goalTR, -45);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -138,7 +202,7 @@ void fullAuto() {
     // Sixth goal
     stopRollers();
     strafeToOrientation(goalCR, -90);
-    shootStaggered();
+    shootStaggered(2);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -152,7 +216,7 @@ void fullAuto() {
     // Seventh goal
     stopRollers();
     strafeToOrientation(goalBR, -135);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -165,7 +229,7 @@ void fullAuto() {
 
     // Eighth goal
     strafeToOrientation(goalBC, 180);
-    shootStaggered();
+    shootStaggered(2);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 
@@ -174,7 +238,7 @@ void fullAuto() {
     turnToAngle(0);
     in();
     strafeToPoint(Vector2(72.5, 64.5));
-    shootStaggeredIntake();
+    shootStaggeredIntake(5);
 }
 
 /**
@@ -191,7 +255,7 @@ void homeRowAuto() {
 
     // First goal
     strafeToOrientation(goalBL, 135);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(600));
     stopRollers();
 
@@ -204,7 +268,7 @@ void homeRowAuto() {
 
     // Second goal
     strafeToOrientation(goalBC, 180);
-    shootStaggered();
+    shootStaggered(2);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     stopRollers();
 
@@ -218,7 +282,7 @@ void homeRowAuto() {
     // Third goal
     turnToAngle(-135);
     strafeToOrientation(goalBR, -135);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     stopRollers();
 
@@ -235,7 +299,7 @@ void homeRowAuto() {
 
     // Fourth goal
     strafeToOrientation(goalCR, -90);
-    shootStaggered();
+    shootStaggered(3);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     stopRollers();
 
@@ -248,7 +312,7 @@ void homeRowAuto() {
 
     // Fifth goal
     strafeToOrientation(goalTR, -45);
-    shootStaggered();
+    shootStaggered(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     stopRollers();
 }

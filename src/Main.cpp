@@ -139,7 +139,8 @@ int main()
 	void framebuffer_size_callback(GLFWwindow * window, int width, int height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);	
 	
-	float s = 140.5/144; // the field is 140.5 in wide but everything is on a 144 in scale
+	const float fieldSizeOffset = 3.5;
+	float s = (144 - fieldSizeOffset)/144; // the field is 140.5 in wide but everything is on a 144 in scale
 
 	float squareVerticesTextured[] {
 		//Vertices             //Texture coords
@@ -253,9 +254,11 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, ARRAY_SIZE(squareVertices));
 
 		//Draw Background
+		glm::mat4 fieldShift;
+		fieldShift = glm::translate(fieldShift, glm::vec3(-fieldSizeOffset/144, -fieldSizeOffset/144, 0));
 		glActiveTexture(GL_TEXTURE1);
 		backgroundShader.use();
-		backgroundShader.setMat4("model", zoom);
+		backgroundShader.setMat4("model", zoom * fieldShift);
 		glBindVertexArray(backgroundVAO);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDrawArrays(GL_TRIANGLES, 0, ARRAY_SIZE(squareVerticesTextured));

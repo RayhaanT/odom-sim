@@ -3,6 +3,14 @@
 #include <chrono>
 #include <thread>
 
+const int initialShotDelay = 400;    // ms
+const int subsequentShotDelay = 400; // ms
+
+void ballDelay(uint8_t balls) {
+    auto d = initialShotDelay + (subsequentShotDelay * (balls - 1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(d));
+}
+
 bool suspendDrive = false;
 
 int callbackCount = 0;
@@ -29,18 +37,21 @@ void stopRollers() {
     // intake.stop();
 }
 
-void shootClean() {
+void shootClean(uint8_t balls) {
     printf("CLEAN SHOT\n");
+    ballDelay(balls);
     // rollers.eject();
 }
 
-void shootStaggered() {
+void shootStaggered(uint8_t balls) {
     printf("MULTIPLE SHOT\n");
+    ballDelay(balls);
     // rollers.shoot();
 }
 
-void shootStaggeredIntake() {
+void shootStaggeredIntake(uint8_t balls) {
     printf("MULTIPLE SHOT WITH INTAKE\n");
+    ballDelay(balls);
     // rollers.shoot();
     // intake.intake(127);
 }

@@ -134,9 +134,9 @@ void tracking() {
 		trackingData.update(x, y, angle);
 
 		printf("X: %f Y: %f A: %f\n",
-			roundUp(trackingData.getX() - chassis.getPosition().x, 2),
-			roundUp(trackingData.getY() - chassis.getPosition().y, 2),
-			radToDeg(roundUp(trackingData.getHeading() - chassis.getOrientation(), 2))
+			roundUp(trackingData.getX(), 2),
+			roundUp(trackingData.getY(), 2),
+			radToDeg(roundUp(trackingData.getHeading(), 2))
 		);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -208,7 +208,12 @@ Vector2 rotateVector(Vector2 vec, double angle) {
 */
 TrackingData::TrackingData(double _x, double _y, double _h) {
 	this->pos = Vector2(_x, _y);
-	this->heading = fmod(_h, 2*M_PI);
+	if(!suspendModulus) {
+		this->heading = fmod(_h, 2 * M_PI);
+	}
+	else {
+		this->heading = _h;
+	}
 }
 
 double TrackingData::getX() {
@@ -241,7 +246,19 @@ Vector2 TrackingData::getForward() {
 */
 void TrackingData::update(double _x, double _y, double _h) {
 	this->pos = Vector2(_x, _y);
-	this->heading = fmod(_h, 2 * M_PI);
+	if(!suspendModulus) {
+		this->heading = fmod(_h, 2 * M_PI);
+	}
+	else {
+		this->heading = _h;
+	}
+}
+
+void TrackingData::suspendAngleModulus() {
+	suspendModulus = true;
+}
+void TrackingData::resumeAngleModulus() {
+	suspendModulus = false;
 }
 
 // ----------------- Vector2 Struct ----------------- //

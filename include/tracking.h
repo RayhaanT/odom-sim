@@ -38,6 +38,7 @@ public:
 
 typedef struct TrackingData {
 private:
+	bool suspendModulus = false;
 	double heading;
 	Vector2 pos;
 
@@ -49,6 +50,9 @@ public:
 	double getHeading();
 	Vector2 getPos();
 	Vector2 getForward();
+
+	void suspendAngleModulus();
+	void resumeAngleModulus();
 
 	void update(double _x, double _y, double _h);
 

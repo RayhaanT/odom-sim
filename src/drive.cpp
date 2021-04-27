@@ -210,7 +210,7 @@ glm::vec2 XDrive::globalToLocal(glm::vec2 vec) {
 glm::mat4 XDrive::getMatrix() {
     glm::mat4 mat;
     mat = glm::scale(mat, glm::vec3(2.0f/144));
-    mat = glm::translate(mat, glm::vec3(position, 0) + glm::vec3(-144/2, -144/2, 0));
+    mat = glm::translate(mat, glm::vec3(position, 0) + glm::vec3(0, backOffset + 2, 0) + glm::vec3(-144 / 2, -144 / 2, 0));
     mat = glm::rotate(mat, (float)orientation, glm::vec3(0, 0, 1));
     return mat;
 }

@@ -32,7 +32,7 @@ extern GLuint driveVAO;
 
 // Starting configuration (in/rad)
 #define STARTX 36
-#define STARTY 8
+#define STARTY 0
 #define STARTO 0
 
 // angle conversion

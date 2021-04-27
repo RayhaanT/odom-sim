@@ -4,6 +4,7 @@
 #include <math.h>
 #include <chrono>
 #include <thread>
+#include "macros.h"
 
 #define TURN_TOLERANCE 0.03
 #define DISTANCE_TOLERANCE 0.5
@@ -85,6 +86,22 @@ void strafeRelative(Vector2 offset, double aOffset) {
 	return;
 }
 
+void alignAndShoot(Vector2 goal, double angle, uint8_t balls, bool intake) {
+
+	strafeToOrientation(goal, angle);
+
+	if(intake) {
+		if(balls == 1) { shootClean(balls); }
+		else { shootStaggeredIntake(balls); }
+	}
+	else {
+		if (balls == 1) { shootClean(balls); }
+		else { shootStaggered(balls); }
+	}
+
+	stopRollers();
+}
+
 /**
  * Strafe to a point on the field and turn to a
  * given angle at the same time. Prioritizes turning
@@ -94,6 +111,7 @@ void strafeRelative(Vector2 offset, double aOffset) {
  * @param angle the desired final angle in global space
 */
 void strafeToOrientation(Vector2 target, double angle) {
+	trackingData.suspendAngleModulus();
 	double time = glfwGetTime();
     angle = angle * M_PI / 180;
 	if (abs(angle - trackingData.getHeading()) > degToRad(180)) {
@@ -101,6 +119,8 @@ void strafeToOrientation(Vector2 target, double angle) {
 	}
 	PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE, DISTANCE_INTEGRAL_TOLERANCE);
 	PIDController turnController(angle, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
+
+	printf("\n\n\n\n%f\n\n\n\n", radToDeg(angle));
 
 	do {
 		// Angle controller
@@ -131,6 +151,8 @@ void strafeToOrientation(Vector2 target, double angle) {
 		// pros::delay(20) equivalent
     	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	} while(!distanceController.isSettled() || !turnController.isSettled());
+
+	trackingData.resumeAngleModulus();
 }
 
 /**
@@ -162,12 +184,16 @@ void strafeToPoint(Vector2 target) {
  * @param target the target angle in global space
 */
 void turnToAngle(double target) {
+	trackingData.suspendAngleModulus();
+
     target = target * M_PI / 180;
 	if(abs(target - trackingData.getHeading()) > degToRad(180)) {
 		target = flipAngle(target);
 	}
 
-    double time = glfwGetTime();
+	printf("\n\n\n\n%f\n\n\n\n", radToDeg(target));
+
+	double time = glfwGetTime();
 	PIDController turnController(target, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
 
 	do {
@@ -180,6 +206,8 @@ void turnToAngle(double target) {
 
     	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	} while(!turnController.isSettled());
+
+	trackingData.resumeAngleModulus();
 }
 
 PIDInfo::PIDInfo(double _p, double _i, double _d) {
