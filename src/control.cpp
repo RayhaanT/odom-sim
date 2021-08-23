@@ -120,8 +120,6 @@ void strafeToOrientation(Vector2 target, double angle) {
 	PIDController distanceController(0, driveConstants, DISTANCE_TOLERANCE, DISTANCE_INTEGRAL_TOLERANCE);
 	PIDController turnController(angle, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);
 
-	printf("\n\n\n\n%f\n\n\n\n", radToDeg(angle));
-
 	do {
 		// Angle controller
 		float tVel = turnController.step(trackingData.getHeading());
@@ -191,7 +189,6 @@ void turnToAngle(double target) {
 		target = flipAngle(target);
 	}
 
-	printf("\n\n\n\n%f\n\n\n\n", radToDeg(target));
 
 	double time = glfwGetTime();
 	PIDController turnController(target, turnConstants, TURN_TOLERANCE, TURN_INTEGRAL_TOLERANCE);

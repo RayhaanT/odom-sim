@@ -48,11 +48,13 @@ void myAutonomous() {
     // Run the desired auto routine
     // fullAuto();
 
-    strafeToPoint(Vector2(70, 70));
-    turnToAngle(90);
-    turnToAngle(190);
-    turnToAngle(359);
-    return;
+    // strafeToPoint(Vector2(70, 70));
+    // turnToAngle(90);
+    // turnToAngle(190);
+    // turnToAngle(359);
+
+    // suspendDrive = false;
+    // return;
 
     // Flipout and get second ball
     flipout();
@@ -91,9 +93,7 @@ void myAutonomous() {
     // Back up and pick up the 5th ball
     strafeRelative(Vector2(-20, 20));
     in();
-    printf("\n\nBRUH\n\n");
     strafeToOrientation(Vector2(114.5, 45), -10);
-    printf("\n\nBRUH\n\n");
 
     strafeToPoint(Vector2(114.5, 67));
 
