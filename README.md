@@ -9,7 +9,10 @@ This project replicates the motion of a mobile robot with a holonomic drive for 
 - [GLM](https://glm.g-truc.net/0.9.8/index.html) - Math library used for graphics
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) - Another math library, this one used to handle spline equations
 
-## Building
+## Building for Linux/MacOS
+The included makefile will compile the project into the executable `simulation` using GNU make and gcc.
+
+## Building for Windows
 Using GNU's C++ compiler (g++), the following command can be used to compile the source:  
 ```g++ -g src/*.cpp src/*.c -static -Iinclude -iquote include -Llib -lopengl32 -lglfw3 -lgdi32 -o odom -mincoming-stack-boundary=2```  
 Or, run buildAndRun.bat to compile and launch the executable:  
