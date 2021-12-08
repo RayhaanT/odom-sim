@@ -1,0 +1,7 @@
+# Binaries
+bin/
+simulation
+
+# Config
+.vscode
+compile_commands.json

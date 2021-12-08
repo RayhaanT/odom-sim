@@ -1,9 +1,9 @@
 #pragma once
 #include "Eigen/Dense"
 #include <cmath>
-#include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "glm/glm.hpp"
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include <vector>
 #include <chrono>
 #include "math.h"

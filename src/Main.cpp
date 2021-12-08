@@ -1,16 +1,16 @@
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include <iostream>
-#include <OpenGLHeaders/ShaderClass.h>
-#include <OpenGLHeaders/texture.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "OpenGLHeaders/ShaderClass.h"
+#include "OpenGLHeaders/texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #define ARRAY_SIZE(array) (sizeof((array)) / sizeof((array[0])))
-#include <GLFW/stb_image.h>
+#include "GLFW/stb_image.h"
 #include <vector>
-#include <odom.h>
+#include "odom.h"
 #include <chrono>
 #include <thread>
 #include "tracking.h"
